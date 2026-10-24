@@ -1,0 +1,10 @@
+# Java
+java_app/bin/
+*.class
+
+# Python/Django
+__pycache__/
+*.pyc
+
+# Database - let each teammate generate their own local DB
+db.sqlite3
