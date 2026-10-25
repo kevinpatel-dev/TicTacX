@@ -3,71 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TicTacX — Mini Project Dashboard</title>
+    
+    <title>TicTacX Analytics Dashboard</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: #0f172a; color: #f8fafc; padding: 30px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .header { background: #1e293b; padding: 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #334155; }
-        h1 { color: #38bdf8; font-size: 26px; margin-bottom: 8px; }
-        .meta { color: #94a3b8; font-size: 14px; line-height: 1.6; }
-        .card { background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid #334155; }
-        h2 { font-size: 20px; margin-bottom: 16px; color: #f1f5f9; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap');
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { 
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); 
+            color: #f8fafc; 
+            padding: 40px 20px; 
+            min-height: 100vh;
+        }
+        
+        /* Entrance Animation */
+        .container { max-width: 1000px; margin: 0 auto; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Flex Header with Glassmorphism */
+        .header { 
+            background: rgba(30, 41, 59, 0.7); 
+            backdrop-filter: blur(16px);
+            padding: 30px; 
+            border-radius: 16px; 
+            margin-bottom: 30px; 
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-info h1 { 
+    background: linear-gradient(to right, #38bdf8, #818cf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 32px; 
+    font-weight: 800;
+    margin-bottom: 8px; 
+}
+        .meta { color: #94a3b8; font-size: 14px; margin-bottom: 4px; }
+        
+        /* Live Sync Indicator (Pulsing Green Dot) */
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 12px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+            font-size: 13px;
+            font-weight: 600;
+            color: #cbd5e1;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        /* Header Actions & Refresh Button */
+.header-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+.refresh-btn {
+    background: rgba(56, 189, 248, 0.1);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+.refresh-btn:hover {
+    background: rgba(56, 189, 248, 0.25);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+}
+/* Reset Button */
+.reset-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+.btn-danger {
+    background: rgba(244, 63, 94, 0.1);
+    color: #fb7185;
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+.btn-danger:hover {
+    background: rgba(244, 63, 94, 0.25);
+    box-shadow: 0 0 12px rgba(244, 63, 94, 0.2);
+}
+        .pulse {
+            width: 10px;
+            height: 10px;
+            background-color: #22c55e;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #22c55e;
+            animation: pulsing 1.5s infinite;
+        }
+        @keyframes pulsing {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        /* Table Card and Scrollable Body */
+        .card { 
+            background: rgba(15, 23, 42, 0.75); 
+            backdrop-filter: blur(16px);
+            border-radius: 16px; 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+        
+        /* Limits table height and enables scrolling for long histories */
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        /* Custom Dark Mode Scrollbar */
+        .table-container::-webkit-scrollbar { width: 8px; }
+        .table-container::-webkit-scrollbar-track { background: rgba(15,23,42,0.5); }
+        .table-container::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #475569; }
+
         table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { background: #0f172a; color: #94a3b8; font-weight: 600; padding: 12px; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #334155; }
-        td { padding: 12px; border-bottom: 1px solid #334155; font-size: 14px; }
-        tr:hover { background-color: #334155; }
-        .badge-win { color: #4ade80; font-weight: bold; }
-        .badge-loss { color: #f87171; font-weight: bold; }
-        .badge-draw { color: #fbbf24; font-weight: bold; }
+        
+        /* Sticky Header */
+        th { 
+            background: rgba(30, 41, 59, 0.98);
+            color: #94a3b8; 
+            font-weight: 600; 
+            padding: 18px 20px; 
+            font-size: 13px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05); 
+        }
+        td { 
+            padding: 16px 20px; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03); 
+            font-size: 15px; 
+            color: #cbd5e1;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: rgba(255, 255, 255, 0.03); transition: background 0.2s; }
+        
+        /* Dynamic Badges */
+        .badge { 
+            padding: 6px 14px; 
+            border-radius: 20px; 
+            font-size: 13px; 
+            font-weight: 600; 
+            text-align: center;
+            display: inline-block;
+            min-width: 85px;
+        }
+        .badge-win { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .badge-loss { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+        .badge-draw { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>{{ project_title }}</h1>
-            <p class="meta"><strong>Course:</strong> CE3VS_LR1: Object Oriented Programming (Java) / Intro to Advanced Java</p>
-            <p class="meta"><strong>Modules:</strong> Java Swing Engine (Desktop GUI) + SQLite Persistence + Django Analytics Webpage</p>
+    <div class="header-info">
+        <h1>TicTacX Analytics Dashboard</h1>
+        <p class="meta"><strong>Course:</strong> CE3VS_LR1: Advanced Java & OOP</p>
+        <p class="meta"><strong>Team:</strong> Kevin, Jhanvi, Prapti</p>
+    </div>
+    <div class="header-actions">
+        <button class="refresh-btn" onclick="window.location.reload()">
+            ↻ Refresh Data
+        </button>
+        <div class="live-indicator">
+            <div class="pulse"></div>
+            DB Connected
         </div>
+    </div>
+</div>
 
         <div class="card">
-            <h2>Live Match Records (SQLite Database)</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Player Name</th>
-                        <th>Game Mode</th>
-                        <th>Outcome</th>
-                        <th>Timestamp</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for match in matches %}
-                    <tr>
-                        <td>{{ match.0 }}</td>
-                        <td>{{ match.1 }}</td>
-                        <td>{{ match.2 }}</td>
-                        <td>
-                            {% if match.3 == "Win" %}
-                                <span class="badge-win">Win</span>
-                            {% elif match.3 == "Loss" %}
-                                <span class="badge-loss">Loss</span>
-                            {% else %}
-                                <span class="badge-draw">Draw</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ match.4 }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" style="text-align: center; color: #94a3b8; padding: 20px;">
-                            No matches logged yet. Play a match in the Java Swing app to populate this table.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Match ID</th>
+                            <th>Versus Setup</th>
+                            <th>Format</th>
+                            <th>Outcome</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for match in matches %}
+                        <tr>
+                            <td style="color: #64748b; font-weight: 500;">#{{ match.0 }}</td>
+                            <td style="font-weight: 600; color: #f8fafc;">{{ match.1 }}</td>
+                            <td>{{ match.2 }}</td>
+                            <td>
+                                {% if "P1 Win" in match.3 or "P2 Win" in match.3 %}
+                                    <span class="badge badge-win">{{ match.3 }}</span>
+                                {% elif "Bot Win" in match.3 %}
+                                    <span class="badge badge-loss">{{ match.3 }}</span>
+                                {% else %}
+                                    <span class="badge badge-draw">{{ match.3 }}</span>
+                                {% endif %}
+                            </td>
+                            <!-- tabular-nums ensures the numbers line up perfectly vertically -->
+                            <td style="font-size: 13px; color: #94a3b8; font-variant-numeric: tabular-nums;">
+                                {{ match.4 }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <p>No matches logged yet. Play a game in the Java Swing app to sync data.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Add this right below the card -->
+        <div class="reset-container">
+            <form action="{% url 'reset_data' %}" method="POST" onsubmit="return confirm('Are you sure you want to wipe the entire database? This cannot be undone.');">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger">⚠️ Reset Database</button>
+            </form>
         </div>
     </div>
 </body>
