@@ -10,20 +10,18 @@ public class TicTacToeGUI extends JFrame implements ActionListener {
     private CardLayout cardLayout = new CardLayout();
     private JPanel mainContainer = new JPanel(cardLayout);
     
-    // UI Colors (Black & Purple Theme)
-    private final Color BG_BLACK = new Color(9, 9, 11);       // Deep black
-    private final Color BG_PURPLE_DARK = new Color(26, 16, 37); // Very dark purple
-    private final Color TEXT_LAVENDER = new Color(233, 213, 255); // Light purple text
+    // Theme Engine Variables
+    private boolean isDarkMode = true;
+    private Color bgMain, bgCard, textMain, borderMain, colorWinHighlight;
     private final Color COLOR_P1 = new Color(192, 132, 252);  // Vibrant purple
-    private final Color COLOR_P2 = new Color(244, 114, 182);  // Pink for contrast
-    private final Color COLOR_WIN = new Color(107, 33, 168);  // Deep purple highlight
+    private final Color COLOR_P2 = new Color(244, 114, 182);  // Pink
 
     // Menu Inputs
     private JTextField p1NameField = new JTextField("Kevin");
-    private JTextField p1SymbolField = new JTextField("X"); // Default to X
+    private JTextField p1SymbolField = new JTextField("X");
     private JComboBox<String> opponentBox = new JComboBox<>(new String[]{"vs AI", "vs Friend"});
     private JTextField p2NameField = new JTextField("Bot");
-    private JTextField p2SymbolField = new JTextField("O"); // Default to O
+    private JTextField p2SymbolField = new JTextField("O");
     private JComboBox<String> gridSizeBox = new JComboBox<>(new String[]{"3x3", "4x4", "5x5"});
     private JComboBox<String> difficultyBox = new JComboBox<>(new String[]{"Easy (Random)", "Medium (Block)"});
     
@@ -31,7 +29,7 @@ public class TicTacToeGUI extends JFrame implements ActionListener {
     private JPanel gamePanel = new JPanel(new BorderLayout());
     private JLabel statusLabel = new JLabel("", SwingConstants.CENTER);
     private JButton[][] buttons;
-    private int[][] boardState; // 0 = empty, 1 = P1, 2 = P2/Bot
+    private int[][] boardState; 
     private int size = 3;
     private boolean isPvP = false;
     private boolean isPlayer1Turn = true; 
@@ -41,42 +39,94 @@ public class TicTacToeGUI extends JFrame implements ActionListener {
 
     public TicTacToeGUI() {
         setTitle("TicTacX");
-        setSize(550, 700);
+        setSize(550, 720);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        getContentPane().setBackground(BG_BLACK);
-
+        
+        updateThemeColors();
+        
         mainContainer.add(createMenuPanel(), "Menu");
         mainContainer.add(gamePanel, "Game");
         add(mainContainer);
         cardLayout.show(mainContainer, "Menu");
     }
 
+    private void updateThemeColors() {
+        if (isDarkMode) {
+            bgMain = new Color(9, 9, 11);          // Deep black
+            bgCard = new Color(26, 16, 37);        // Dark purple
+            textMain = new Color(233, 213, 255);   // Lavender
+            borderMain = new Color(88, 28, 135);   // Purple outline
+            colorWinHighlight = new Color(107, 33, 168); 
+        } else {
+            bgMain = new Color(248, 250, 252);     // Slate 50
+            bgCard = new Color(243, 232, 255);     // Purple 100
+            textMain = new Color(15, 23, 42);      // Slate 900
+            borderMain = new Color(216, 180, 254); // Purple 300
+            colorWinHighlight = new Color(233, 213, 255);
+        }
+        getContentPane().setBackground(bgMain);
+    }
+
     private void styleInput(JComponent comp) {
-        comp.setBackground(BG_PURPLE_DARK);
-        comp.setForeground(TEXT_LAVENDER);
-        comp.setFont(new Font("SansSerif", Font.PLAIN, 15));
+        comp.setBackground(bgCard);
+        comp.setForeground(textMain);
+        comp.setFont(new Font("Dialog", Font.BOLD, 15));
+        
         if (comp instanceof JTextField) {
-            ((JTextField) comp).setCaretColor(TEXT_LAVENDER);
+            ((JTextField) comp).setCaretColor(textMain);
             comp.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(new Color(88, 28, 135)), // Purple border
-                BorderFactory.createEmptyBorder(6, 10, 6, 10)
+                new LineBorder(borderMain, 2), 
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
+            ));
+        } else if (comp instanceof JComboBox) {
+            // Fixes dropdown visibility by adding padding
+            comp.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(borderMain, 2), 
+                BorderFactory.createEmptyBorder(4, 4, 4, 4)
             ));
         }
     }
 
     private JPanel createMenuPanel() {
         JPanel menu = new JPanel(new GridBagLayout());
-        menu.setBackground(BG_BLACK);
+        menu.setBackground(bgMain);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        // Theme Switcher Button
+        // Theme Switcher Button
+        JButton themeBtn = new JButton(isDarkMode ? "☀️ Light Mode" : "🌙 Dark Mode");
+        themeBtn.setFont(new Font("Dialog", Font.BOLD, 13));
+        themeBtn.setBackground(bgCard);
+        themeBtn.setForeground(textMain);
+        themeBtn.setFocusPainted(false);
+        // Added CompoundBorder to create internal padding (margins) inside the border
+        themeBtn.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(borderMain, 1, true), 
+            BorderFactory.createEmptyBorder(6, 12, 6, 12)
+        ));
+        themeBtn.addActionListener(e -> {
+            isDarkMode = !isDarkMode;
+            updateThemeColors();
+            mainContainer.removeAll();
+            mainContainer.add(createMenuPanel(), "Menu");
+            mainContainer.add(gamePanel, "Game");
+            mainContainer.revalidate();
+            mainContainer.repaint();
+        });
+        
+        // Push the button to the top right with some margin
+        gbc.gridx = 1; gbc.gridy = 0; gbc.anchor = GridBagConstraints.NORTHEAST; 
+        gbc.fill = GridBagConstraints.NONE; gbc.insets = new Insets(0, 0, 20, 0);
+        menu.add(themeBtn, gbc);
+
         JLabel title = new JLabel("TicTacX", SwingConstants.CENTER);
-        title.setFont(new Font("SansSerif", Font.BOLD, 42));
+        title.setFont(new Font("Dialog", Font.BOLD, 46));
         title.setForeground(COLOR_P1);
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        gbc.insets = new Insets(10, 10, 30, 10);
+        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER; gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 10, 25, 10);
         menu.add(title, gbc);
 
         gbc.insets = new Insets(8, 12, 8, 12);
@@ -91,26 +141,30 @@ public class TicTacToeGUI extends JFrame implements ActionListener {
 
         gbc.gridwidth = 1;
         for (int i = 0; i < labels.length; i++) {
-            labels[i].setForeground(TEXT_LAVENDER);
-            labels[i].setFont(new Font("SansSerif", Font.BOLD, 14));
+            labels[i].setForeground(textMain);
+            labels[i].setFont(new Font("Dialog", Font.BOLD, 14));
             styleInput(inputs[i]);
             gbc.gridx = 0; gbc.gridy++; menu.add(labels[i], gbc);
             gbc.gridx = 1; menu.add(inputs[i], gbc);
         }
 
         p2NameField.setEnabled(false);
+        // Remove duplicate action listeners to prevent memory leaks on theme rebuild
+        for (ActionListener al : opponentBox.getActionListeners()) {
+            opponentBox.removeActionListener(al);
+        }
         opponentBox.addActionListener(e -> {
             boolean isFriend = opponentBox.getSelectedIndex() == 1;
             p2NameField.setEnabled(isFriend);
             difficultyBox.setEnabled(!isFriend);
             p2NameField.setText(isFriend ? "Player 2" : "Bot");
-            p2SymbolField.setText("O"); // Keep default as 'O' when switching modes
+            p2SymbolField.setText("O");
         });
 
         JButton startBtn = new JButton("Start Game");
-        startBtn.setFont(new Font("SansSerif", Font.BOLD, 18));
+        startBtn.setFont(new Font("Dialog", Font.BOLD, 18));
         startBtn.setBackground(COLOR_P1);
-        startBtn.setForeground(BG_BLACK);
+        startBtn.setForeground(new Color(9, 9, 11)); // Always dark text on vibrant purple
         startBtn.setFocusPainted(false);
         startBtn.addActionListener(e -> initGame());
         
@@ -122,13 +176,11 @@ public class TicTacToeGUI extends JFrame implements ActionListener {
     private void initGame() {
         isPvP = opponentBox.getSelectedIndex() == 1;
         
-        // Fetch inputs and trim whitespace
         p1Name = p1NameField.getText().trim();
         p2Name = p2NameField.getText().trim();
         p1Symbol = p1SymbolField.getText().trim();
         p2Symbol = p2SymbolField.getText().trim();
         
-        // Fallback to defaults if fields are left completely blank
         if (p1Name.isEmpty()) p1Name = "Player 1";
         if (p2Name.isEmpty()) p2Name = isPvP ? "Player 2" : "Bot";
         if (p1Symbol.isEmpty()) p1Symbol = "X";
@@ -142,28 +194,31 @@ public class TicTacToeGUI extends JFrame implements ActionListener {
         boardState = new int[size][size]; 
         
         gamePanel.removeAll();
-        gamePanel.setBackground(BG_BLACK);
+        gamePanel.setBackground(bgMain);
         
         statusLabel.setText(p1Name + "'s Turn (" + p1Symbol + ")");
-        statusLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
-        statusLabel.setForeground(TEXT_LAVENDER);
+        statusLabel.setFont(new Font("Dialog", Font.BOLD, 22));
+        statusLabel.setForeground(textMain);
         statusLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         gamePanel.add(statusLabel, BorderLayout.NORTH);
 
         JPanel gridPanel = new JPanel(new GridLayout(size, size, 8, 8));
-        gridPanel.setBackground(BG_BLACK);
+        gridPanel.setBackground(bgMain);
         gridPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
         
         buttons = new JButton[size][size];
-        Font emojiFont = new Font("Segoe UI Emoji", Font.PLAIN, size == 3 ? 56 : (size == 4 ? 42 : 32));
+        
+        // Font sizing adjusted to prevent emoji clipping on Linux
+        Font emojiFont = new Font(Font.SANS_SERIF, Font.PLAIN, size == 3 ? 48 : (size == 4 ? 38 : 28));
 
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
                 buttons[r][c] = new JButton("");
                 buttons[r][c].setFont(emojiFont);
                 buttons[r][c].setFocusPainted(false);
-                buttons[r][c].setBackground(BG_PURPLE_DARK);
-                buttons[r][c].setBorder(new LineBorder(new Color(88, 28, 135), 2));
+                buttons[r][c].setBackground(bgCard);
+                buttons[r][c].setBorder(new LineBorder(borderMain, 2));
+                buttons[r][c].setMargin(new Insets(0, 0, 0, 0)); // Prevents internal clipping
                 buttons[r][c].addActionListener(this);
                 gridPanel.add(buttons[r][c]);
             }
@@ -171,8 +226,13 @@ public class TicTacToeGUI extends JFrame implements ActionListener {
         gamePanel.add(gridPanel, BorderLayout.CENTER);
 
         JButton backBtn = new JButton("Abandon & Return to Menu");
-        backBtn.setBackground(new Color(88, 28, 135));
-        backBtn.setForeground(TEXT_LAVENDER);
+        backBtn.setBackground(bgCard);
+        backBtn.setForeground(textMain);
+        backBtn.setFont(new Font("Dialog", Font.BOLD, 14));
+        backBtn.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(borderMain, 2), 
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
         backBtn.setFocusPainted(false);
         backBtn.addActionListener(e -> cardLayout.show(mainContainer, "Menu"));
         gamePanel.add(backBtn, BorderLayout.SOUTH);
@@ -189,7 +249,6 @@ public class TicTacToeGUI extends JFrame implements ActionListener {
         JButton clickedButton = (JButton) e.getSource();
         int r = -1, c = -1;
         
-        // Find grid coordinates of the click
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 if (buttons[i][j] == clickedButton) {
@@ -198,7 +257,7 @@ public class TicTacToeGUI extends JFrame implements ActionListener {
             }
         }
 
-        if (boardState[r][c] != 0) return; // Cell already taken
+        if (boardState[r][c] != 0) return; 
 
         processMove(r, c, isPlayer1Turn ? 1 : 2);
 
@@ -257,9 +316,9 @@ public class TicTacToeGUI extends JFrame implements ActionListener {
         Point choice = null;
         if (difficulty.contains("Medium")) {
             for (Point p : emptyCells) {
-                boardState[p.x][p.y] = 1; // Simulate P1 move
+                boardState[p.x][p.y] = 1; 
                 if (checkWin(1, false)) choice = p;
-                boardState[p.x][p.y] = 0; // Revert
+                boardState[p.x][p.y] = 0; 
                 if (choice != null) break;
             }
         }
@@ -276,11 +335,11 @@ public class TicTacToeGUI extends JFrame implements ActionListener {
                 if (boardState[j][i] != playerCode) colWin = false;
             }
             if (rowWin) {
-                if (highlight) for (int j = 0; j < size; j++) buttons[i][j].setBackground(COLOR_WIN);
+                if (highlight) for (int j = 0; j < size; j++) buttons[i][j].setBackground(colorWinHighlight);
                 return true;
             }
             if (colWin) {
-                if (highlight) for (int j = 0; j < size; j++) buttons[j][i].setBackground(COLOR_WIN);
+                if (highlight) for (int j = 0; j < size; j++) buttons[j][i].setBackground(colorWinHighlight);
                 return true;
             }
         }
@@ -291,11 +350,11 @@ public class TicTacToeGUI extends JFrame implements ActionListener {
             if (boardState[i][size - 1 - i] != playerCode) diag2 = false;
         }
         if (diag1) {
-            if (highlight) for (int i = 0; i < size; i++) buttons[i][i].setBackground(COLOR_WIN);
+            if (highlight) for (int i = 0; i < size; i++) buttons[i][i].setBackground(colorWinHighlight);
             return true;
         }
         if (diag2) {
-            if (highlight) for (int i = 0; i < size; i++) buttons[i][size - 1 - i].setBackground(COLOR_WIN);
+            if (highlight) for (int i = 0; i < size; i++) buttons[i][size - 1 - i].setBackground(colorWinHighlight);
             return true;
         }
         return false;
